@@ -6,18 +6,33 @@ from flask import Flask, request, send_file, render_template, redirect, url_for,
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change_this_secret_key")
 
-COOKIE_FILE = os.path.join(os.getcwd(), "cookies.txt")  # must exist in Netscape format
+# -----------------------------
+# Paste your YouTube login cookies here
+# You can get them from Chrome/Firefox in Netscape format
+# Keep only the necessary cookies: SID, HSID, SSID, APISID, SAPISID, etc.
+# -----------------------------
+COOKIES = {
+    "SID": "g.a0005QgTcXFGyUBZG6Nakpoa0VOUaBOr...",
+    "HSID": "Aw0LkvpGUkVN04MGY",
+    "SSID": "As1wBIMR5iPLlUVGY",
+    "APISID": "HzcZ7aFjIMkkSzsD/ABmyDjUEBbxjG5PUV",
+    "SAPISID": "uz6BMzl8f2yKL_9A/A-wkPFVcRmZLZ-LcG",
+    "__Secure-1PAPISID": "uz6BMzl8f2yKL_9A/A-wkPFVcRmZLZ-LcG",
+    "__Secure-3PAPISID": "uz6BMzl8f2yKL_9A/A-wkPFVcRmZLZ-LcG",
+    # Add more if necessary
+}
 
+# -----------------------------
+# Generate yt-dlp options
+# -----------------------------
 def get_ydl_opts(format_type, quality, output_template):
     opts = {
         "outtmpl": output_template,
         "quiet": True,
         "no_warnings": True,
         "restrictfilenames": True,
+        "cookies": COOKIES  # <-- use cookies directly
     }
-
-    if os.path.exists(COOKIE_FILE):
-        opts["cookiefile"] = COOKIE_FILE
 
     if format_type == "audio":
         opts.update({
@@ -39,6 +54,9 @@ def get_ydl_opts(format_type, quality, output_template):
 
     return opts
 
+# -----------------------------
+# Flask routes
+# -----------------------------
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -74,12 +92,13 @@ def index():
             )
 
         except Exception as e:
-            flash(str(e))
+            flash(f"Error: {str(e)}")
             return redirect(url_for("index"))
 
     return render_template("index.html")
 
-
+# -----------------------------
+# Run Flask
+# -----------------------------
 if __name__ == "__main__":
-    # THIS MUST BE LAST — on its own line
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
